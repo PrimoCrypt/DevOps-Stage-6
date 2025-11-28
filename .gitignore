@@ -1,0 +1,30 @@
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl
+
+# Ansible
+infra/ansible/inventory.ini
+
+# Local Environment
+.env
+letsencrypt/
+
+# IDEs
+.vscode/
+.idea/
+
+# Service Artifacts
+**/node_modules/
+**/dist/
+**/target/
+**/__pycache__/
+auth-api/auth-api
+
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl
+infra/ansible/inventory.ini
+letsencrypt/

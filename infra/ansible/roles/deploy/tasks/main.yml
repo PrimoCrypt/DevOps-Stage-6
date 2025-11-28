@@ -1,0 +1,67 @@
+---
+- name: Create project directory
+  file:
+    path: '{{ project_root }}'
+    state: directory
+    mode: '0755'
+
+- name: Clone repository
+  git:
+    repo: '{{ repo_url }}'
+    dest: '{{ project_root }}'
+    version: main
+    force: yes
+
+- name: Create .env file
+  copy:
+    dest: '{{ project_root }}/.env'
+    content: |
+      # frontend:
+      PORT=8080
+      AUTH_API_ADDRESS=http://auth-api:8081
+      TODOS_API_ADDRESS=http://todos-api:8082
+
+      # auth-api:
+      AUTH_API_PORT=8081
+      JWT_SECRET=myfancysecret
+      USERS_API_ADDRESS=http://users-api:8083
+
+      # todos-api:
+      JWT_SECRET=myfancysecret
+      REDIS_HOST=redis
+      REDIS_PORT=6379
+      REDIS_CHANNEL=log_channel
+      TODO_API_PORT=8082
+
+      # users-api:
+      SERVER_PORT=8083
+      JWT_SECRET=myfancysecret
+
+      # log-message-processor:
+      REDIS_HOST=redis
+      REDIS_PORT=6379
+      REDIS_CHANNEL=log_channel
+      ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+
+      # Traefik Domain
+      DOMAIN_NAME={{ domain_name }}
+      ACME_EMAIL={{ email }}
+
+- name: Create letsencrypt directory
+  file:
+    path: '{{ project_root }}/letsencrypt'
+    state: directory
+    mode: '0755'
+
+- name: Create acme.json
+  file:
+    path: '{{ project_root }}/letsencrypt/acme.json'
+    state: touch
+    mode: '0600'
+
+- name: Deploy with Docker Compose
+  command: docker-compose up -d --build --remove-orphans
+  args:
+    chdir: '{{ project_root }}'
+  register: docker_compose_output
+  changed_when: "'Recreating' in docker_compose_output.stdout or 'Created' in docker_compose_output.stdout or 'Building' in docker_compose_output.stdout"

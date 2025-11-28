@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.myresolver.acme.tlschallenge=true'
+      - '--certificatesresolvers.myresolver.acme.email=yhungdew@gmail.com'
+      - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+    volumes:
+      - './letsencrypt:/letsencrypt'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    networks:
+      - app-network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.frontend.rule=Host(`leonesii.mooo.com`)'
+      - 'traefik.http.routers.frontend.entrypoints=websecure'
+      - 'traefik.http.routers.frontend.tls.certresolver=myresolver'
+      - 'traefik.http.routers.frontend-http.rule=Host(`leonesii.mooo.com`)'
+      - 'traefik.http.routers.frontend-http.entrypoints=web'
+      - 'traefik.http.routers.frontend-http.middlewares=https-redirect'
+      - 'traefik.http.middlewares.https-redirect.redirectscheme.scheme=https'
+    networks:
+      - app-network
+
+  auth-api:
+    build: ./auth-api
+    container_name: auth-api
+    environment:
+      - USERS_API_ADDRESS=http://users-api:8083
+      - JWT_SECRET=myfancysecret
+      - AUTH_API_PORT=8081
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.auth-api.rule=Host(`leonesii.mooo.com`) && PathPrefix(`/api/auth`)'
+      - 'traefik.http.routers.auth-api.entrypoints=websecure'
+      - 'traefik.http.routers.auth-api.tls.certresolver=myresolver'
+      - 'traefik.http.middlewares.auth-strip.stripprefix.prefixes=/api/auth'
+      - 'traefik.http.routers.auth-api.middlewares=auth-strip'
+    networks:
+      - app-network
+
+  todos-api:
+    build: ./todos-api
+    container_name: todos-api
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CHANNEL=log_channel
+      - TODO_API_PORT=8082
+      - JWT_SECRET=myfancysecret
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.todos-api.rule=Host(`leonesii.mooo.com`) && PathPrefix(`/api/todos`)'
+      - 'traefik.http.routers.todos-api.entrypoints=websecure'
+      - 'traefik.http.routers.todos-api.tls.certresolver=myresolver'
+      - 'traefik.http.middlewares.todos-strip.stripprefix.prefixes=/api'
+      - 'traefik.http.routers.todos-api.middlewares=todos-strip'
+    networks:
+      - app-network
+    depends_on:
+      - redis
+
+  users-api:
+    build: ./users-api
+    container_name: users-api
+    environment:
+      - SERVER_PORT=8083
+      - JWT_SECRET=myfancysecret
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411/
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.users-api.rule=Host(`leonesii.mooo.com`) && PathPrefix(`/api/users`)'
+      - 'traefik.http.routers.users-api.entrypoints=websecure'
+      - 'traefik.http.routers.users-api.tls.certresolver=myresolver'
+      - 'traefik.http.middlewares.users-strip.stripprefix.prefixes=/api'
+      - 'traefik.http.routers.users-api.middlewares=users-strip'
+    networks:
+      - app-network
+
+  log-message-processor:
+    build: ./log-message-processor
+    container_name: log-message-processor
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CHANNEL=log_channel
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    networks:
+      - app-network
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    networks:
+      - app-network
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - '9411:9411'
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
