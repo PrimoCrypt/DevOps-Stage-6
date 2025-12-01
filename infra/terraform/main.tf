@@ -20,7 +20,7 @@ provider "null" {}
 provider "local" {}
 
 variable "ssh_host" {
-  description = "The public IP of the Contabo VPS"
+  description = "The public IP of the Server"
   type        = string
 }
 
