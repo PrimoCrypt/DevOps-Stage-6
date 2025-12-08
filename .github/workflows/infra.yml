@@ -107,6 +107,11 @@ jobs:
           chmod 600 infra/terraform/deployer_key
         # We need the public key for aws_key_pair and private key for Ansible (if triggered)
 
+      - name: Verify SSH Key Format
+        run: |
+          chmod 600 infra/terraform/deployer_key
+          ssh-keygen -l -f infra/terraform/deployer_key || echo "::error::SSH Private Key is invalid! Check your GitHub Secret."
+
       - name: Terraform Init
         run: terraform init
         working-directory: infra/terraform
