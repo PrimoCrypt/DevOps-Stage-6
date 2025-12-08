@@ -12,7 +12,6 @@ infra/ansible/inventory.ini
 letsencrypt/
 
 # IDEs
-.vscode/
 .idea/
 
 # Service Artifacts
@@ -28,3 +27,7 @@ infra/terraform/*.tfstate.backup
 infra/terraform/.terraform.lock.hcl
 infra/ansible/inventory.ini
 letsencrypt/
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
