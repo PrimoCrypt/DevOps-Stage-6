@@ -129,7 +129,7 @@ resource "null_resource" "ansible_provision" {
       echo "Running Ansible playbook..."
       # Set strict host key checking to no to avoid interactive prompt
       export ANSIBLE_HOST_KEY_CHECKING=False
-      ansible-playbook -i ${path.module}/../ansible/inventory/hosts.yml ${path.module}/../ansible/playbook.yml
+      ansible-playbook -i ${path.module}/../ansible/inventory/hosts.yml ${path.module}/../ansible/playbook.yml --extra-vars "domain_name=${var.domain_name} email=${var.email}"
     EOT
   }
 

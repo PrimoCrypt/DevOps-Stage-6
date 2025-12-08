@@ -54,8 +54,10 @@ jobs:
           fi
         working-directory: infra/terraform
         env:
-          TF_VAR_public_key_path: 'deployer_key.pub'
-          TF_VAR_private_key_path: 'deployer_key'
+          TF_VAR_public_key_path: '${{ github.workspace }}/infra/terraform/deployer_key.pub'
+          TF_VAR_private_key_path: '${{ github.workspace }}/infra/terraform/deployer_key'
+          TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+          TF_VAR_email: ${{ secrets.ACME_EMAIL }}
 
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
@@ -126,5 +128,7 @@ jobs:
         run: terraform apply -auto-approve tfplan
         working-directory: infra/terraform
         env:
-          TF_VAR_public_key_path: 'deployer_key.pub'
-          TF_VAR_private_key_path: 'deployer_key'
+          TF_VAR_public_key_path: '${{ github.workspace }}/infra/terraform/deployer_key.pub'
+          TF_VAR_private_key_path: '${{ github.workspace }}/infra/terraform/deployer_key'
+          TF_VAR_domain_name: ${{ secrets.DOMAIN_NAME }}
+          TF_VAR_email: ${{ secrets.ACME_EMAIL }}

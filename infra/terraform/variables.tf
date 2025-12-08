@@ -39,3 +39,13 @@ variable "ssh_cidr" {
   type        = string
   default     = "0.0.0.0/0"
 }
+
+variable "domain_name" {
+  description = "Domain name for the application"
+  type        = string
+}
+
+variable "email" {
+  description = "Email for SSL certificates"
+  type        = string
+}
