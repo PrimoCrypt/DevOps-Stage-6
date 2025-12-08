@@ -32,6 +32,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Create SSH Keys for Plan
+        run: |
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > infra/terraform/deployer_key.pub
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > infra/terraform/deployer_key
+          chmod 600 infra/terraform/deployer_key
+
       - name: Terraform Plan
         id: plan
         run: |
